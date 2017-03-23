@@ -1,10 +1,10 @@
 package org.polaric.colorful;
 
 import android.app.ActivityManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
@@ -15,7 +15,7 @@ public abstract class ColorfulActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        themeString=Colorful.getThemeString();
+        themeString = Colorful.getThemeString();
         setTheme(Colorful.getThemeDelegate().getStyleResBase());
         getTheme().applyStyle(Colorful.getThemeDelegate().getStyleResPrimary(), true);
         getTheme().applyStyle(Colorful.getThemeDelegate().getStyleResAccent(), true);
@@ -24,7 +24,8 @@ public abstract class ColorfulActivity extends AppCompatActivity {
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             }
 
-            ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(null, null, getResources().getColor(Colorful.getThemeDelegate().getPrimaryColor().getColorRes()));
+            ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(null, null,
+                    ContextCompat.getColor(this, Colorful.getThemeDelegate().getPrimaryColor().getColorRes()));
             setTaskDescription(tDesc);
         }
     }

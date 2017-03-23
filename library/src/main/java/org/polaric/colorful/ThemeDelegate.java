@@ -8,20 +8,20 @@ public class ThemeDelegate {
     private Colorful.ThemeColor primaryColor;
     private Colorful.ThemeColor accentColor;
     private boolean translucent;
-    private boolean dark;
+    private boolean isNight;
     @StyleRes private int styleResPrimary;
     @StyleRes private int styleResAccent;
     @StyleRes private int styleResBase;
 
-    ThemeDelegate(Context context, Colorful.ThemeColor primary, Colorful.ThemeColor accent, boolean translucent, boolean dark) {
+    ThemeDelegate(Context context, Colorful.ThemeColor primary, Colorful.ThemeColor accent, boolean translucent, boolean isNight) {
         this.primaryColor=primary;
         this.accentColor=accent;
         this.translucent=translucent;
-        this.dark=dark;
+        this.isNight = isNight;
         long curTime = System.currentTimeMillis();
         styleResPrimary = context.getResources().getIdentifier("primary" + primary.ordinal(), "style", context.getPackageName());
         styleResAccent = context.getResources().getIdentifier("accent" + accent.ordinal(), "style", context.getPackageName());
-        styleResBase = dark ? R.style.Colorful_Dark : R.style.Colorful_Light;
+        styleResBase = isNight ? R.style.Colorful_Dark : R.style.Colorful_Light;
         Log.d(Util.LOG_TAG, "ThemeDelegate fetched theme in " + (System.currentTimeMillis()-curTime) + " milliseconds");
     }
 
@@ -48,8 +48,8 @@ public class ThemeDelegate {
     public boolean isTranslucent() {
         return translucent;
     }
-    
-    public boolean isDark() {
-        return dark;
+
+    public boolean isNight() {
+        return isNight;
     }
 }

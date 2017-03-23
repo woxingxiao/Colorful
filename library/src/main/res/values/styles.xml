@@ -180,21 +180,21 @@
     </style>
 
     <style name="primary19">
-        <item name="colorPrimary">@color/md_white_1000</item>
-        <item name="colorPrimaryDark">@color/md_white_1000</item>
+        <item name="colorPrimary">@color/md_dark</item>
+        <item name="colorPrimaryDark">@color/md_dark_deep</item>
     </style>
 
     <style name="accent19">
-        <item name="colorAccent">@color/md_white_1000</item>
+        <item name="colorAccent">@color/md_dark</item>
     </style>
 
     <style name="primary20">
-        <item name="colorPrimary">@color/md_black_1000</item>
-        <item name="colorPrimaryDark">@color/md_black_1000</item>
+        <item name="colorPrimary">@color/md_night_primary</item>
+        <item name="colorPrimaryDark">@color/md_night_primary_dark</item>
     </style>
 
     <style name="accent20">
-        <item name="colorAccent">@color/md_black_1000</item>
+        <item name="colorAccent">@color/md_night_primary</item>
     </style>
 
 </resources>

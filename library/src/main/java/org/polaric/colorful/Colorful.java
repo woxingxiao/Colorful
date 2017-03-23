@@ -2,6 +2,7 @@ package org.polaric.colorful;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.v7.preference.PreferenceManager;
@@ -12,7 +13,7 @@ public class Colorful {
     private static ThemeColor primaryColor = Defaults.primaryColor;
     private static ThemeColor accentColor = Defaults.accentColor;
     private static boolean isTranslucent = Defaults.trans;
-    private static boolean isDark = Defaults.darkTheme;
+    private static boolean isNight = Defaults.nightTheme;
     private static String themeString;
 
     private Colorful() {
@@ -20,18 +21,18 @@ public class Colorful {
     }
 
     public static void init(Context context) {
-        Log.d(Util.LOG_TAG,"Attatching to " + context.getPackageName());
-        themeString= PreferenceManager.getDefaultSharedPreferences(context).getString(Util.PREFERENCE_KEY, null);
+        Log.d(Util.LOG_TAG, "Attaching to " + context.getPackageName());
+        themeString = PreferenceManager.getDefaultSharedPreferences(context).getString(Util.PREFERENCE_KEY, null);
         if (themeString == null) {
             primaryColor = Defaults.primaryColor;
             accentColor = Defaults.accentColor;
             isTranslucent = Defaults.trans;
-            isDark = Defaults.darkTheme;
+            isNight = Defaults.nightTheme;
             themeString = generateThemeString();
         } else {
-            initValues();
+            initValues(context);
         }
-        delegate = new ThemeDelegate(context, primaryColor, accentColor, isTranslucent, isDark);
+        delegate = new ThemeDelegate(context, checkNightPrimaryColor(), accentColor, isTranslucent, isNight);
     }
 
     public static void applyTheme(@NonNull Activity activity) {
@@ -50,20 +51,28 @@ public class Colorful {
         PreferenceManager.getDefaultSharedPreferences(context).edit().putString(Util.PREFERENCE_KEY, generateThemeString()).apply();
     }
 
-    private static void initValues() {
-        String [] colors = themeString.split(":");
-        isDark = Boolean.parseBoolean(colors[0]);
+    private static void initValues(Context context) {
+        String[] colors = themeString.split(":");
+        isNight = Boolean.parseBoolean(colors[0]);
         isTranslucent = Boolean.parseBoolean(colors[1]);
         primaryColor = Colorful.ThemeColor.values()[Integer.parseInt(colors[2])];
         accentColor = Colorful.ThemeColor.values()[Integer.parseInt(colors[3])];
+
+        if (isNight) {
+            String preThemeString = PreferenceManager.getDefaultSharedPreferences(context).getString(Util.PRE_PREFERENCE_KEY, null);
+            if (preThemeString != null) {
+                colors = preThemeString.split(":");
+                primaryColor = Colorful.ThemeColor.values()[Integer.parseInt(colors[2])];
+            }
+        }
     }
 
     private static String generateThemeString() {
-        return isDark+ ":" + isTranslucent + ":" + primaryColor.ordinal() + ":" + accentColor.ordinal();
+        return isNight + ":" + isTranslucent + ":" + checkNightPrimaryColor().ordinal() + ":" + accentColor.ordinal();
     }
 
     public static ThemeDelegate getThemeDelegate() {
-        if (delegate==null) {
+        if (delegate == null) {
             Log.e(Util.LOG_TAG, "getThemeDelegate() called before init(Context). Call Colorful.init(Context) in your application class");
         }
         return delegate;
@@ -93,28 +102,36 @@ public class Colorful {
         BROWN(R.color.md_brown_500, R.color.md_brown_700),
         GREY(R.color.md_grey_500, R.color.md_grey_700),
         BLUE_GREY(R.color.md_blue_grey_500, R.color.md_blue_grey_700),
-        WHITE(R.color.md_white_1000, R.color.md_white_1000),
-        BLACK(R.color.md_black_1000, R.color.md_black_1000);
+        //        WHITE(R.color.md_night_primary, R.color.md_night_primary),
+        DARK(R.color.md_dark, R.color.md_dark_deep),
 
-        @ColorRes private int colorRes;
-        @ColorRes private int darkColorRes;
+        NIGHT(R.color.md_night_primary, R.color.md_night_primary_dark);
+
+        @ColorRes
+        private int colorRes;
+        @ColorRes
+        private int darkColorRes;
 
         ThemeColor(@ColorRes int colorRes, @ColorRes int darkColorRes) {
             this.colorRes = colorRes;
             this.darkColorRes = darkColorRes;
         }
 
-        public @ColorRes int getColorRes() {
+        public
+        @ColorRes
+        int getColorRes() {
             return colorRes;
         }
 
-        public @ColorRes int getDarkColorRes() {
+        public
+        @ColorRes
+        int getDarkColorRes() {
             return darkColorRes;
         }
     }
 
     public static Config config(Context context) {
-        return new Config(context);
+        return new Config(context.getApplicationContext());
     }
 
     public static Defaults defaults() {
@@ -123,10 +140,10 @@ public class Colorful {
 
     public static class Defaults {
 
-        private static ThemeColor primaryColor= ThemeColor.DEEP_PURPLE;
-        private static ThemeColor accentColor= ThemeColor.RED;
-        private static boolean trans=false;
-        private static boolean darkTheme=false;
+        private static ThemeColor primaryColor = ThemeColor.DEEP_PURPLE;
+        private static ThemeColor accentColor = ThemeColor.RED;
+        private static boolean trans = false;
+        private static boolean nightTheme = false;
 
         public Defaults primaryColor(ThemeColor primary) {
             primaryColor = primary;
@@ -143,8 +160,8 @@ public class Colorful {
             return this;
         }
 
-        public Defaults dark(boolean dark) {
-            darkTheme = dark;
+        public Defaults night(boolean night) {
+            nightTheme = night;
             return this;
         }
     }
@@ -153,7 +170,7 @@ public class Colorful {
         private Context context;
 
         private Config(Context context) {
-            this.context=context;
+            this.context = context;
         }
 
         public Config primaryColor(ThemeColor primary) {
@@ -171,16 +188,31 @@ public class Colorful {
             return this;
         }
 
-        public Config dark(boolean dark) {
-            isDark = dark;
+        public Config night(boolean night) {
+            isNight = night;
+
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+            if (isNight) {
+                sp.edit().putString(Util.PRE_PREFERENCE_KEY, themeString).apply();
+            } else {
+                String preThemeString = sp.getString(Util.PRE_PREFERENCE_KEY, null);
+                if (preThemeString != null) {
+                    String[] colors = preThemeString.split(":");
+                    primaryColor = Colorful.ThemeColor.values()[Integer.parseInt(colors[2])];
+                }
+            }
             return this;
         }
 
         public void apply() {
             writeValues(context);
-            themeString=generateThemeString();
-            delegate = new ThemeDelegate(context, primaryColor, accentColor, isTranslucent, isDark);
+            themeString = generateThemeString();
+            delegate = new ThemeDelegate(context, checkNightPrimaryColor(), accentColor, isTranslucent, isNight);
         }
+    }
+
+    private static ThemeColor checkNightPrimaryColor() {
+        return isNight ? ThemeColor.NIGHT : primaryColor;
     }
 
 }
